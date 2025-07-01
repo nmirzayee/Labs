@@ -1,92 +1,191 @@
+# this is the content of the lab 7
+# first problem 
 import pygame
-import datetime
+import sys
 import math
-import os
+import time
+from datetime import datetime
 
-# Initialize pygame
 pygame.init()
 
-# Screen setup
-WIDTH, HEIGHT = 600, 600
+# Window setup
+WIDTH, HEIGHT = 800, 800
 screen = pygame.display.set_mode((WIDTH, HEIGHT))
-pygame.display.set_caption("Mickey Mouse Clock")
+pygame.display.set_caption("Mickey Clock")
 
-# Colors
-WHITE = (255, 255, 255)
-BLACK = (0, 0, 0)
-RED = (255, 0, 0)
+# Load images
+background = pygame.image.load("mickey_body.png").convert_alpha()
+right_hand = pygame.image.load("right_hand.png").convert_alpha()  # minutes
+left_hand = pygame.image.load("left_hand.png").convert_alpha()    # seconds
+
+# Resize if needed
+background = pygame.transform.scale(background, (WIDTH, HEIGHT))
 
 # Clock center
-center = (WIDTH//2, HEIGHT//2)
+center = (WIDTH // 2, HEIGHT // 2)
 
-# Load images (replace with your actual image paths)
-try:
-    # Try to load images
-    mickey_face = pygame.image.load("mickey_face.png").convert_alpha()
-    mickey_face = pygame.transform.scale(mickey_face, (WIDTH, HEIGHT))
-    
-    # Seconds hand (left hand - should point right in the image)
-    left_hand = pygame.image.load("left_hand.png").convert_alpha()
-    left_hand = pygame.transform.scale(left_hand, (250, 50))  # Adjust size as needed
-    
-    # Minutes hand (right hand - should point right in the image)
-    right_hand = pygame.image.load("right_hand.png").convert_alpha()
-    right_hand = pygame.transform.scale(right_hand, (200, 50))  # Adjust size as needed
-    
-except FileNotFoundError:
-    # Fallback if images not found - we'll draw simple shapes instead
-    print("Image files not found! Using fallback graphics.")
-    
-    # Create Mickey face
-    mickey_face = pygame.Surface((WIDTH, HEIGHT), pygame.SRCALPHA)
-    pygame.draw.circle(mickey_face, (200, 200, 200), center, 250)  # Face
-    pygame.draw.circle(mickey_face, (200, 200, 200), (center[0]-150, center[1]-150), 80)  # Left ear
-    pygame.draw.circle(mickey_face, (200, 200, 200), (center[0]+150, center[1]-150), 80)  # Right ear
-    
-    # Create hands
-    left_hand = pygame.Surface((250, 20), pygame.SRCALPHA)
-    pygame.draw.rect(left_hand, RED, (0, 0, 250, 10))  # Red seconds hand
-    
-    right_hand = pygame.Surface((200, 20), pygame.SRCALPHA)
-    pygame.draw.rect(right_hand, BLACK, (0, 0, 200, 15))  # Black minutes hand
-
-# Main game loop
+# Main loop
 clock = pygame.time.Clock()
 running = True
-
 while running:
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
             running = False
-    
+
     # Get current time
-    now = datetime.datetime.now()
-    seconds = now.second
-    minutes = now.minute + seconds/60  # Makes minutes hand move smoothly
-    
-    # Calculate angles (0° at top, clockwise)
-    second_angle = -math.radians(seconds * 6) + math.pi/2
-    minute_angle = -math.radians(minutes * 6) + math.pi/2
-    
+    now = datetime.now()
+    second = now.second
+    minute = now.minute
+
+    # Convert to angles
+    sec_angle = -second * 6   # 360 / 60
+    min_angle = -minute * 6
+
     # Rotate hands
-    rotated_left = pygame.transform.rotate(left_hand, math.degrees(second_angle))
-    rotated_right = pygame.transform.rotate(right_hand, math.degrees(minute_angle))
-    
-    # Get rects for positioning (account for rotation)
+    rotated_left = pygame.transform.rotate(left_hand, sec_angle)
+    rotated_right = pygame.transform.rotate(right_hand, min_angle)
+
+    # Get new rects centered around the pivot
     left_rect = rotated_left.get_rect(center=center)
     right_rect = rotated_right.get_rect(center=center)
-    
+
     # Draw everything
-    screen.fill(WHITE)
-    screen.blit(mickey_face, (0, 0))
+    screen.fill((255, 255, 255))
+    screen.blit(background, (0, 0))
     screen.blit(rotated_left, left_rect)
     screen.blit(rotated_right, right_rect)
-    
-    # Draw clock center
-    pygame.draw.circle(screen, BLACK, center, 10)
-    
+
     pygame.display.flip()
     clock.tick(30)
 
 pygame.quit()
 sys.exit()
+
+# # //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+# # music player
+
+
+# import pygame
+# import os
+
+# # Initialize pygame mixer
+# pygame.init()
+# pygame.mixer.init()
+
+# # Window setup (not required but allows event loop)
+# screen = pygame.display.set_mode((400, 200))
+# pygame.display.set_caption("Keyboard Music Player")
+
+# # Load music files
+# music_folder = "music"
+# playlist = [os.path.join(music_folder, f) for f in os.listdir(music_folder) if f.endswith(".mp3")]
+# playlist.sort()  # Sort files alphabetically
+
+# # Track state
+# current_track = 0
+# is_playing = False
+
+# # Function to load and play music
+# def play_music(index):
+#     global is_playing
+#     pygame.mixer.music.load(playlist[index])
+#     pygame.mixer.music.play()
+#     is_playing = True
+#     print(f"Now Playing: {os.path.basename(playlist[index])}")
+
+# # Function to stop music
+# def stop_music():
+#     global is_playing
+#     pygame.mixer.music.stop()
+#     is_playing = False
+#     print("Stopped")
+
+# # Function to pause/resume
+# def toggle_pause():
+#     global is_playing
+#     if is_playing:
+#         pygame.mixer.music.pause()
+#         is_playing = False
+#         print("Paused")
+#     else:
+#         pygame.mixer.music.unpause()
+#         is_playing = True
+#         print("Resumed")
+
+# # Start event loop
+# running = True
+# print("Controls: P = Play/Pause, S = Stop, N = Next, B = Previous")
+# while running:
+#     for event in pygame.event.get():
+#         if event.type == pygame.QUIT:
+#             stop_music()
+#             running = False
+#         elif event.type == pygame.KEYDOWN:
+#             if event.key == pygame.K_p:
+#                 if pygame.mixer.music.get_busy():
+#                     toggle_pause()
+#                 else:
+#                     play_music(current_track)
+#             elif event.key == pygame.K_s:
+#                 stop_music()
+#             elif event.key == pygame.K_n:
+#                 current_track = (current_track + 1) % len(playlist)
+#                 play_music(current_track)
+#             elif event.key == pygame.K_b:
+#                 current_track = (current_track - 1) % len(playlist)
+#                 play_music(current_track)
+
+#     pygame.display.flip()
+
+# pygame.quit()
+
+# #////////////////////////////////////////////////////////////////////////////////////////////////////////////
+#  # red ball (circle) of size 50×50 
+# import pygame
+# import sys
+
+# # Initialize
+# pygame.init()
+
+# # Screen setup
+# WIDTH, HEIGHT = 800, 600
+# screen = pygame.display.set_mode((WIDTH, HEIGHT))
+# pygame.display.set_caption("Move the Red Ball")
+
+# # Ball setup
+# RADIUS = 25
+# ball_color = (255, 0, 0)  # Red
+# bg_color = (255, 255, 255)  # White
+# x, y = WIDTH // 2, HEIGHT // 2  # Start in the center
+
+# # Movement step
+# STEP = 20
+
+# # Main loop
+# running = True
+# clock = pygame.time.Clock()
+# while running:
+#     screen.fill(bg_color)
+
+#     # Draw the ball
+#     pygame.draw.circle(screen, ball_color, (x, y), RADIUS)
+
+#     for event in pygame.event.get():
+#         if event.type == pygame.QUIT:
+#             running = False
+
+#         elif event.type == pygame.KEYDOWN:
+#             if event.key == pygame.K_UP and y - STEP - RADIUS >= 0:
+#                 y -= STEP
+#             elif event.key == pygame.K_DOWN and y + STEP + RADIUS <= HEIGHT:
+#                 y += STEP
+#             elif event.key == pygame.K_LEFT and x - STEP - RADIUS >= 0:
+#                 x -= STEP
+#             elif event.key == pygame.K_RIGHT and x + STEP + RADIUS <= WIDTH:
+#                 x += STEP
+
+#     pygame.display.flip()
+#     clock.tick(60)
+
+# pygame.quit()
+# sys.exit()
